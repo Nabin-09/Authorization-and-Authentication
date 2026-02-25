@@ -81,6 +81,17 @@ export async function registerHandler(req : Request ,   res : Response){
 export async function verifyEmailHandler(req : Request , res : Response){
     const token = req.query.token as string  | undefined;
     if(!token){
-        return res.status(400).json({message : 'Verification token is missing'})
+        return res.status(400).json({message : 'Verification token is missing'});
+    }
+    try{
+        const payload = jwt.verify(token , process.env.JWT_ACCESS_SECRET!) as {
+            sub : string ;
+        }
+        const user = await User.findById(payload.sub);
+        if(!user){
+            return res.status(400).json({message : 'User not found'})
+        }
+    }catch(err){
+         
     }
 }
