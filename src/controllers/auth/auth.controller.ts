@@ -1,8 +1,14 @@
 import { Request , Response } from "express";
 import { registerSchema } from "./auth.schema";
-import { error } from "node:console";
 import { User } from "../../models/user.model";
 import { hashPassword } from "../../lib/hash";
+import jwt from 'jsonwebtoken';
+import { sendEmail } from "../../lib/email";
+
+function getAppUrl(){
+    return process.env.APP_URL || `http:localhost:${process.env.PORT}`
+}
+
 
 export async function registerHandler(req : Request ,   res : Response){
     try{
@@ -33,7 +39,48 @@ export async function registerHandler(req : Request ,   res : Response){
             twoFactorEnabled : false
         }); 
          
+        //email verification part
+        const verifyToken = jwt.sign(
+            {
+                sub : newUser.id
+            },
+            process.env.JWT_ACCESS_SECRET!,
+            {
+                expiresIn : '1d'
+            }
+        )
+
+        const verifyUrl = `${getAppUrl}/auth/verify-email?token=${verifyToken}`
+
+        await sendEmail(
+            newUser.email ,
+            'Verify your email !',
+            `
+            <p>Please verify your email ! by clicking the link below : </p>
+            <p><a href = '${verifyUrl}'>${verifyToken}</a></p>
+            `
+        );
+
+        return res.status(201).json({
+            message : 'User registered',
+            user : {
+                id : newUser.id,
+                email : newUser.email,
+                role : newUser.role,
+                isEmailVerified: newUser.isEmailVerified
+            }
+        })
+
     }catch(err){
-        
+        return res.status(500).json({
+            message : `Internal Server error ${err}`
+        })
+    }
+}
+
+export async function verifyEmailHandler(req : Request , res : Response){
+    const token = req.query.token as string  | undefined;
+    if(!token){
+        return res.status(400).json({message : 'Verification token is missing'})
     }
 }
