@@ -1,53 +1,52 @@
-import {Schema , model} from 'mongoose'
+import {Schema , model } from 'mongoose'
+import { lowercase } from 'zod'
 
-
-const userSchema  = new Schema({
+const userSchema = new Schema({
     email : {
         type : String ,
-        required : true,
+        required : true ,
         unique : true,
-        lowercase : true,
-        trim : true
+        trim : true,
+        lowercase : true
     },
     passwordHash : {
-        type : String,
-        required : true,
+        type : String ,
+        required : true
     },
     role : {
-        type : String , 
+        type : String ,
         enum : ['user' , 'admin']
     },
     isEmailVerified : {
-        type : Boolean,
-        default : false,
+        type : Boolean ,
+        default : false
     },
     name : {
-        type : String
+        type : String 
     },
     twoFactorEnabled : {
-        type : Boolean , 
-        default : false,
+        type : Boolean ,
+        default : false
     },
     twoFactorSecret : {
         type : String ,
         default : undefined
     },
     tokenVersion : {
-        type : Number , 
-        default : 0
+        type : Number ,
+        deafult : 0
     },
     resetPasswordToken : {
         type : String ,
         default : undefined
     },
     resetPasswordExpires : {
-        type : Date,
+        type : Date ,
         default : undefined
     }
-
 }, {
     timestamps : true
-});
+})
 
 
 export const User = model('User' , userSchema);
